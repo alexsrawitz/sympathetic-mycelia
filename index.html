@@ -1,0 +1,1004 @@
+<!DOCTYPE html>
+<!--
+    SYMPATHETIC MYCELIA
+    A generative artwork exploring resonant botanical connection
+
+    Philosophy: Growth through invitation, strength through patience,
+    connection through harmonic resonance.
+-->
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sympathetic Mycelia</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.7.0/p5.min.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&family=Lora:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --anthropic-dark: #141413;
+            --anthropic-light: #faf9f5;
+            --anthropic-mid-gray: #b0aea5;
+            --anthropic-light-gray: #e8e6dc;
+            --anthropic-orange: #d97757;
+            --anthropic-blue: #6a9bcc;
+            --anthropic-green: #788c5d;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: linear-gradient(135deg, var(--anthropic-light) 0%, #f5f3ee 100%);
+            min-height: 100vh;
+            color: var(--anthropic-dark);
+        }
+
+        .container {
+            display: flex;
+            min-height: 100vh;
+            padding: 20px;
+            gap: 20px;
+        }
+
+        .sidebar {
+            width: 320px;
+            flex-shrink: 0;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            padding: 24px;
+            border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(20, 20, 19, 0.1);
+            overflow-y: auto;
+        }
+
+        .sidebar h1 {
+            font-family: 'Lora', serif;
+            font-size: 24px;
+            font-weight: 500;
+            color: var(--anthropic-dark);
+            margin-bottom: 8px;
+        }
+
+        .sidebar .subtitle {
+            color: var(--anthropic-mid-gray);
+            font-size: 14px;
+            margin-bottom: 32px;
+            line-height: 1.5;
+            font-style: italic;
+        }
+
+        .control-section { margin-bottom: 32px; }
+
+        .control-section h3 {
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--anthropic-dark);
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .control-section h3::before {
+            content: '•';
+            color: var(--anthropic-orange);
+            font-weight: bold;
+        }
+
+        .button {
+            background: var(--anthropic-orange);
+            color: white;
+            border: none;
+            padding: 10px 16px;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            width: 100%;
+        }
+
+        .button:hover {
+            background: #c86641;
+            transform: translateY(-1px);
+        }
+
+        .button.secondary { background: var(--anthropic-blue); }
+        .button.secondary:hover { background: #5a8bb8; }
+        .button.tertiary { background: var(--anthropic-green); }
+        .button.tertiary:hover { background: #6b7b52; }
+
+        .button.flow {
+            background: linear-gradient(135deg, #6a5acd 0%, #9370db 100%);
+            font-size: 16px;
+            padding: 14px;
+        }
+        .button.flow:hover {
+            background: linear-gradient(135deg, #5a4abd 0%, #8360cb 100%);
+        }
+        .button.flow:disabled {
+            background: #888;
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .button-row {
+            display: flex;
+            gap: 8px;
+        }
+
+        .progress-container {
+            margin-top: 12px;
+            display: none;
+        }
+
+        .progress-container.active {
+            display: block;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 6px;
+            background: var(--anthropic-light-gray);
+            border-radius: 3px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--anthropic-green) 0%, var(--anthropic-blue) 100%);
+            border-radius: 3px;
+            width: 0%;
+            transition: width 0.1s ease-out;
+        }
+
+        .progress-text {
+            font-size: 11px;
+            color: var(--anthropic-mid-gray);
+            margin-top: 4px;
+            text-align: center;
+        }
+
+        .button-row .button { flex: 1; }
+
+        .canvas-area {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 0;
+        }
+
+        #canvas-container {
+            width: 100%;
+            max-width: 900px;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 20px 40px rgba(20, 20, 19, 0.15);
+            background: white;
+        }
+
+        #canvas-container canvas {
+            display: block;
+            width: 100% !important;
+            height: auto !important;
+        }
+
+        .loading {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 200px;
+            font-size: 18px;
+            color: var(--anthropic-mid-gray);
+        }
+
+        @media (max-width: 900px) {
+            .container { flex-direction: column; }
+            .sidebar { width: 100%; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="sidebar">
+            <h1>Sympathetic Mycelia</h1>
+            <div class="subtitle">
+                Cosmic tendrils weaving through the void.
+                Growth through invitation. Connection through resonance.
+            </div>
+
+            <!-- Feeling Input -->
+            <div class="control-section">
+                <h3>How are you feeling?</h3>
+
+                <textarea id="feeling-input" placeholder="Share what's on your mind and heart today. Your words will become art — the colors, patterns, and energy all emerge from what you express here..." oninput="updateCharCounter()" style="
+                    width: 100%;
+                    min-height: 120px;
+                    padding: 12px;
+                    border-radius: 8px;
+                    border: 1px solid var(--anthropic-light-gray);
+                    font-family: 'Poppins', sans-serif;
+                    font-size: 14px;
+                    resize: vertical;
+                    margin-bottom: 4px;
+                    line-height: 1.5;
+                "></textarea>
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <p id="char-hint" style="font-size: 11px; color: var(--anthropic-mid-gray); margin: 0;">50 characters minimum</p>
+                    <span id="char-counter" style="font-size: 11px; color: var(--anthropic-mid-gray);">0 / 50</span>
+                </div>
+            </div>
+
+            <!-- Actions -->
+            <div class="control-section">
+                <button class="button flow" id="flow-btn" onclick="flow()">✦ Flow</button>
+                <div class="progress-container" id="progress-container">
+                    <div class="progress-bar">
+                        <div class="progress-fill" id="progress-fill"></div>
+                    </div>
+                    <div class="progress-text" id="progress-text">Growing...</div>
+                </div>
+                <div class="button-row" style="margin-top: 8px;">
+                    <button class="button secondary" onclick="resetAll()">Reset All</button>
+                    <button class="button secondary" id="download-btn" onclick="saveImage()" disabled style="opacity: 0.5;">Download</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="canvas-area">
+            <div id="canvas-container">
+                <div class="loading">Awakening the network...</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ═══════════════════════════════════════════════════════════════════════
+        // WARM NATURAL PALETTES - Curated for botanical resonance
+        // ═══════════════════════════════════════════════════════════════════════
+
+        const PALETTES = [
+            // Original 14
+            { name: 'Forest Floor', labels: ['Moss', 'Bark', 'Mushroom'], colors: ['#7a9e6b', '#8b6f4a', '#d4c4a8'] },
+            { name: 'Autumn Leaves', labels: ['Amber', 'Rust', 'Golden'], colors: ['#d4a574', '#a65d3f', '#e8c547'] },
+            { name: 'Sunset Mesa', labels: ['Terracotta', 'Dusty Rose', 'Sand'], colors: ['#c4725d', '#c9a0a0', '#e8d5b7'] },
+            { name: 'Desert Sage', labels: ['Sage', 'Clay', 'Cream'], colors: ['#9caa8e', '#c4856a', '#f0e6d3'] },
+            { name: 'Harvest Moon', labels: ['Pumpkin', 'Wheat', 'Burgundy'], colors: ['#d4854a', '#d9c9a3', '#8b4a5e'] },
+            { name: 'Cherry Blossom', labels: ['Blossom', 'Petal', 'Leaf'], colors: ['#d4a0a8', '#f5e6e8', '#8fa889'] },
+            { name: 'Redwood Grove', labels: ['Redwood', 'Fern', 'Fog'], colors: ['#8b4a3a', '#6b8b6a', '#d9d4c4'] },
+            { name: 'Honey Garden', labels: ['Honey', 'Lavender', 'Clover'], colors: ['#d4a855', '#a8a0c4', '#8bab7a'] },
+            { name: 'Terracotta Dawn', labels: ['Clay', 'Olive', 'Linen'], colors: ['#c47a5a', '#8a8b5a', '#f0e8dc'] },
+            { name: 'Wildflower Field', labels: ['Mauve', 'Mustard', 'Sage'], colors: ['#b08a9a', '#c9a83a', '#8a9a7a'] },
+            { name: 'River Stone', labels: ['Lichen', 'Stone', 'Water'], colors: ['#8a9a6a', '#a0998a', '#7a9aaa'] },
+            { name: 'Spice Market', labels: ['Turmeric', 'Paprika', 'Cinnamon'], colors: ['#d4a030', '#c45a3a', '#8b5a3a'] },
+            { name: 'Morning Dew', labels: ['Dewdrop', 'Grass', 'Earth'], colors: ['#b8d4c8', '#6a8b5a', '#7a6a5a'] },
+            { name: 'Copper Patina', labels: ['Copper', 'Verdigris', 'Bronze'], colors: ['#b87a4a', '#6a9a8a', '#8a7a5a'] },
+            // New palettes (15-32)
+            { name: 'Twilight Meadow', labels: ['Violet', 'Clover', 'Dusk'], colors: ['#8b7aa8', '#7a9a6a', '#c4b8d4'] },
+            { name: 'Ocean Kelp', labels: ['Kelp', 'Seafoam', 'Driftwood'], colors: ['#5a7a6a', '#8ac4b8', '#a89a7a'] },
+            { name: 'Dried Flowers', labels: ['Rose', 'Lavender', 'Parchment'], colors: ['#c4a0a8', '#a898b8', '#e8dcd0'] },
+            { name: 'Ember Glow', labels: ['Ember', 'Flame', 'Ash'], colors: ['#c45a3a', '#d4854a', '#8a7a6a'] },
+            { name: 'Lichen Rock', labels: ['Lichen', 'Granite', 'Moss'], colors: ['#9aaa8a', '#8a8a7a', '#6a7a5a'] },
+            { name: 'Maple Sugar', labels: ['Maple', 'Caramel', 'Cream'], colors: ['#b86a3a', '#d4a060', '#f0e0c8'] },
+            { name: 'Prairie Grass', labels: ['Wheat', 'Sage', 'Sky'], colors: ['#d4b870', '#8a9a6a', '#a8c4d4'] },
+            { name: 'Moonlit Garden', labels: ['Silver', 'Mint', 'Shadow'], colors: ['#b8c4c8', '#8abaa0', '#6a7a7a'] },
+            { name: 'Clay Vessel', labels: ['Terracotta', 'Sand', 'Slip'], colors: ['#b86a4a', '#d4b898', '#f0e8d8'] },
+            { name: 'Vineyard', labels: ['Grape', 'Vine', 'Earth'], colors: ['#7a4a5a', '#8a9a5a', '#6a5a4a'] },
+            { name: 'Sandstone Canyon', labels: ['Sandstone', 'Rust', 'Shadow'], colors: ['#d4a878', '#a85a3a', '#7a6a5a'] },
+            { name: 'Wild Berry', labels: ['Blackberry', 'Raspberry', 'Leaf'], colors: ['#5a3a5a', '#a84a5a', '#6a8a5a'] },
+            { name: 'Eucalyptus', labels: ['Eucalyptus', 'Bark', 'Mist'], colors: ['#6a9a8a', '#7a6a5a', '#c8d4d0'] },
+            { name: 'Dried Herbs', labels: ['Rosemary', 'Thyme', 'Stem'], colors: ['#6a7a5a', '#8a9a6a', '#a89878'] },
+            { name: 'Sunset Cloud', labels: ['Coral', 'Lavender', 'Gold'], colors: ['#d4887a', '#b8a0c4', '#d4b868'] },
+            { name: 'Ancient Oak', labels: ['Bark', 'Moss', 'Acorn'], colors: ['#5a4a3a', '#7a8a5a', '#a87a4a'] },
+            { name: 'Desert Bloom', labels: ['Cactus', 'Blossom', 'Sand'], colors: ['#6a8a5a', '#d47a8a', '#e8d8c0'] },
+            { name: 'Weathered Wood', labels: ['Driftwood', 'Grain', 'Knot'], colors: ['#9a9088', '#b8a890', '#7a6858'] },
+            { name: 'Mountain Lupine', labels: ['Lupine', 'Stone', 'Pine'], colors: ['#7a6aa8', '#a0a098', '#5a7a5a'] },
+            { name: 'Tidal Pool', labels: ['Anemone', 'Kelp', 'Shell'], colors: ['#a85a7a', '#4a6a5a', '#d8c8b8'] },
+            { name: 'Orchard', labels: ['Apple', 'Leaf', 'Branch'], colors: ['#c45a4a', '#7a9a5a', '#8a7a5a'] },
+            { name: 'Faded Tapestry', labels: ['Rose', 'Gold', 'Indigo'], colors: ['#b8889a', '#c4a858', '#5a5a7a'] },
+        ];
+
+        // Derive background hue from palette colors (called after p5 setup)
+        function getPaletteBackgroundHue() {
+            let palette = PALETTES[currentPaletteIndex];
+            // Convert all palette colors to hues and find weighted average
+            let hues = [];
+            let totalSat = 0;
+            for (let hex of palette.colors) {
+                let c = color(hex);
+                let h = hue(c);
+                let s = saturation(c);
+                hues.push({ h, s });
+                totalSat += s;
+            }
+            // Weight by saturation - more saturated colors should influence more
+            let weightedHue = 0;
+            for (let {h, s} of hues) {
+                weightedHue += h * (s / totalSat);
+            }
+            return weightedHue;
+        }
+
+        let hasFlowed = false; // Track if Flow has been clicked
+
+        let currentPaletteIndex = 0;
+
+        // ═══════════════════════════════════════════════════════════════════════
+        // PARAMETERS - Emerged from the philosophy
+        // ═══════════════════════════════════════════════════════════════════════
+
+        let params = {
+            seed: 42,
+            tendrilCount: 2800,
+            growthRate: 0.6,
+            vibrationFreq: 0.02,
+            connectionStrength: 0.5,
+            noiseScale: 0.003,
+            colors: [...PALETTES[0].colors]
+        };
+
+        let defaultParams = JSON.parse(JSON.stringify(params));
+
+        // ═══════════════════════════════════════════════════════════════════════
+        // THE ALGORITHM - Sympathetic Mycelia
+        // ═══════════════════════════════════════════════════════════════════════
+
+        let tendrils = [];
+        let globalHeartbeat = 0;
+        let connections = [];
+
+        function setup() {
+            let canvas = createCanvas(1200, 1200);
+            canvas.parent('canvas-container');
+            colorMode(HSB, 360, 100, 100, 100);
+            smooth(); // Enable anti-aliasing
+            curveTightness(0); // Smooth Catmull-Rom splines
+            strokeCap(ROUND);
+            strokeJoin(ROUND);
+
+            // Start with a neutral dark background (no palette yet)
+            background(0, 0, 12);
+
+            // Flow button starts disabled until 50 chars entered
+            document.getElementById('flow-btn').disabled = true;
+
+            document.querySelector('.loading').style.display = 'none';
+        }
+
+        function drawNebulaBackground() {
+            // Simple dark background derived from palette
+            let baseHue = getPaletteBackgroundHue();
+
+            clear();
+            // Dark but visibly tinted with the palette's color family
+            background(baseHue, 30, 15);
+        }
+
+        // Get derived background hue for fade
+        function getCurrentBgHue() {
+            return getPaletteBackgroundHue();
+        }
+
+        function draw() {
+            // Don't do anything until Flow is clicked
+            if (!hasFlowed) return;
+
+            // Global heartbeat - the breath of the system
+            globalHeartbeat += params.vibrationFreq;
+
+            // Very subtle fade for trails - matches palette background
+            noStroke();
+            fill(getCurrentBgHue(), 30, 15, 3);
+            rect(0, 0, width, height);
+
+            // Update and draw connections between resonant tendrils
+            drawConnections();
+
+            // Update and draw each tendril
+            for (let tendril of tendrils) {
+                tendril.grow();
+                tendril.draw();
+            }
+
+            // Find new connections periodically
+            if (frameCount % 5 === 0) {
+                findConnections();
+            }
+
+            // Update progress
+            updateProgress();
+        }
+
+        function updateProgress() {
+            let totalPoints = 0;
+            let maxPoints = 0;
+            for (let t of tendrils) {
+                totalPoints += t.points.length;
+                maxPoints += t.maxLength;
+            }
+            let progress = Math.min(100, (totalPoints / maxPoints) * 100);
+
+            const fill = document.getElementById('progress-fill');
+            const text = document.getElementById('progress-text');
+
+            fill.style.width = progress + '%';
+
+            if (progress < 100) {
+                text.textContent = 'Growing... ' + Math.round(progress) + '%';
+            } else {
+                text.textContent = 'Complete ✓';
+                // Enable download
+                let dlBtn = document.getElementById('download-btn');
+                dlBtn.disabled = false;
+                dlBtn.style.opacity = '1';
+                // Hide progress after a moment
+                setTimeout(() => {
+                    document.getElementById('progress-container').classList.remove('active');
+                }, 2000);
+            }
+        }
+
+        // ═══════════════════════════════════════════════════════════════════════
+        // TENDRIL - A single filament with internal vibration
+        // ═══════════════════════════════════════════════════════════════════════
+
+        class Tendril {
+            constructor(x, y, index) {
+                this.points = [{ x, y }];
+                this.index = index;
+                this.phase = random(TWO_PI); // Internal vibration phase
+                this.phaseSpeed = random(0.01, 0.03);
+                this.pickColor(); // Sets baseHue, baseSat, baseBri
+                this.thickness = random(1.5, 4);
+                this.maxLength = floor(random(200, 600)); // Long tendrils for full coverage
+                this.alive = true;
+                this.energy = 1.0; // Dims when isolated
+                this.connectionCount = 0;
+            }
+
+            pickColor() {
+                // Convert hex color to HSB and store all components
+                let c = color(random(params.colors));
+                this.baseHue = hue(c);
+                this.baseSat = saturation(c);
+                this.baseBri = brightness(c);
+            }
+
+            grow() {
+                if (!this.alive || this.points.length >= this.maxLength) return;
+
+                let last = this.points[this.points.length - 1];
+
+                // Accumulate movement for smoother curves (bigger steps, fewer points)
+                let stepSize = params.growthRate * (0.5 + this.energy * 0.5) * 3;
+                let steps = 3; // Integrate over multiple micro-steps for smooth direction
+
+                let newX = last.x;
+                let newY = last.y;
+
+                for (let s = 0; s < steps; s++) {
+                    // Low-frequency noise field - gentle guidance
+                    let angle = noise(newX * params.noiseScale, newY * params.noiseScale, params.seed * 0.1) * TWO_PI * 2;
+                    newX += cos(angle) * (stepSize / steps);
+                    newY += sin(angle) * (stepSize / steps);
+                }
+
+                // No boundary checks - let tendrils flow freely off canvas
+                this.points.push({ x: newX, y: newY });
+
+                // Update internal phase
+                this.phase += this.phaseSpeed;
+
+                // Energy decays when isolated, builds when connected
+                if (this.connectionCount > 0) {
+                    this.energy = min(1.5, this.energy + 0.01 * this.connectionCount);
+                } else {
+                    this.energy = max(0.3, this.energy - 0.002);
+                }
+
+                this.connectionCount = 0; // Reset for next frame
+            }
+
+            draw() {
+                if (this.points.length < 4) return; // Need 4 points for smooth Catmull-Rom
+
+                // Color pulses with global heartbeat, modulated by internal phase
+                // Preserve original color character while adding subtle animation
+                let breathe = sin(globalHeartbeat + this.phase) * 0.5 + 0.5;
+                let satRange = max(20, this.baseSat * 0.3); // Subtle saturation pulse
+                let briRange = max(15, this.baseBri * 0.25); // Subtle brightness pulse
+                let sat = map(breathe, 0, 1, this.baseSat - satRange * 0.5, min(100, this.baseSat + satRange * 0.5)) * this.energy;
+                let bri = map(breathe, 0, 1, max(40, this.baseBri - briRange), min(100, this.baseBri + briRange)) * this.energy;
+                let alpha = map(this.energy, 0.3, 1.5, 50, 95);
+
+                noFill();
+                stroke(this.baseHue, sat, bri, alpha);
+                strokeWeight(this.thickness * this.energy);
+
+                // Draw with Catmull-Rom spline interpolation for smoothness
+                beginShape();
+                for (let i = 0; i < this.points.length; i++) {
+                    let p = this.points[i];
+
+                    // Triple the first and last points for proper curve endpoints
+                    if (i === 0) {
+                        curveVertex(p.x, p.y);
+                        curveVertex(p.x, p.y);
+                    }
+
+                    curveVertex(p.x, p.y);
+
+                    if (i === this.points.length - 1) {
+                        curveVertex(p.x, p.y);
+                    }
+                }
+                endShape();
+
+                // Subtle glow at tip if alive and energetic
+                if (this.alive && this.energy > 0.8) {
+                    let tip = this.points[this.points.length - 1];
+                    noStroke();
+                    fill(this.baseHue, this.baseSat * 0.5, min(100, this.baseBri + 10), 20 * breathe);
+                    ellipse(tip.x, tip.y, 8 * this.energy, 8 * this.energy);
+                }
+            }
+
+            getTip() {
+                return this.points[this.points.length - 1];
+            }
+
+            getPhase() {
+                return this.phase % TWO_PI;
+            }
+        }
+
+        // ═══════════════════════════════════════════════════════════════════════
+        // CONNECTIONS - Resonance between compatible phases
+        // ═══════════════════════════════════════════════════════════════════════
+
+        function findConnections() {
+            connections = [];
+
+            for (let i = 0; i < tendrils.length; i++) {
+                for (let j = i + 1; j < tendrils.length; j++) {
+                    let a = tendrils[i];
+                    let b = tendrils[j];
+
+                    if (!a.alive && !b.alive) continue;
+
+                    let tipA = a.getTip();
+                    let tipB = b.getTip();
+                    let d = dist(tipA.x, tipA.y, tipB.x, tipB.y);
+
+                    // Connection threshold
+                    let threshold = 80 * params.connectionStrength;
+
+                    if (d < threshold) {
+                        // Phase compatibility - resonance when phases align
+                        let phaseDiff = abs(a.getPhase() - b.getPhase());
+                        phaseDiff = min(phaseDiff, TWO_PI - phaseDiff); // Wrap around
+                        let resonance = 1 - (phaseDiff / PI); // 1 = perfect alignment, 0 = opposite
+
+                        if (resonance > 0.3) {
+                            connections.push({
+                                a: tipA,
+                                b: tipB,
+                                resonance: resonance,
+                                dist: d,
+                                hue: (a.baseHue + b.baseHue) / 2
+                            });
+
+                            // Boost energy of connected tendrils
+                            a.connectionCount++;
+                            b.connectionCount++;
+                        }
+                    }
+                }
+            }
+        }
+
+        function drawConnections() {
+            for (let conn of connections) {
+                let alpha = map(conn.dist, 0, 80, 40, 5) * conn.resonance;
+                let weight = map(conn.resonance, 0.3, 1, 0.5, 2);
+
+                // Pulsing connection
+                let pulse = sin(globalHeartbeat * 2) * 0.3 + 0.7;
+
+                stroke(conn.hue, 40, 80, alpha * pulse);
+                strokeWeight(weight);
+                line(conn.a.x, conn.a.y, conn.b.x, conn.b.y);
+
+                // Warm glow at connection midpoint
+                if (conn.resonance > 0.7) {
+                    let mx = (conn.a.x + conn.b.x) / 2;
+                    let my = (conn.a.y + conn.b.y) / 2;
+                    noStroke();
+                    fill(conn.hue, 30, 90, 15 * pulse * conn.resonance);
+                    ellipse(mx, my, 12, 12);
+                }
+            }
+        }
+
+        // ═══════════════════════════════════════════════════════════════════════
+        // UI HANDLERS
+        // ═══════════════════════════════════════════════════════════════════════
+
+        const MIN_CHARS = 50;
+
+        function updateCharCounter() {
+            const text = document.getElementById('feeling-input').value;
+            const count = text.length;
+            const counter = document.getElementById('char-counter');
+            const hint = document.getElementById('char-hint');
+            const flowBtn = document.getElementById('flow-btn');
+
+            counter.textContent = count + ' / ' + MIN_CHARS;
+
+            if (count >= MIN_CHARS) {
+                counter.style.color = 'var(--anthropic-green)';
+                hint.textContent = 'Ready to flow';
+                hint.style.color = 'var(--anthropic-green)';
+                flowBtn.disabled = false;
+            } else {
+                counter.style.color = 'var(--anthropic-mid-gray)';
+                hint.textContent = (MIN_CHARS - count) + ' more characters needed';
+                hint.style.color = 'var(--anthropic-mid-gray)';
+                flowBtn.disabled = true;
+            }
+        }
+
+        function applyPalette() {
+            let palette = PALETTES[currentPaletteIndex];
+            params.colors = [...palette.colors];
+        }
+
+        // ═══════════════════════════════════════════════════════════════════════
+        // RESONANCE FROM FEELING
+        // ═══════════════════════════════════════════════════════════════════════
+
+        // Sentiment word banks — expanded for richer matching
+        const MOOD_WORDS = {
+            // Energy level (affects growth rate, vibration)
+            calm: [
+                'calm', 'peaceful', 'serene', 'quiet', 'still', 'relaxed', 'tranquil', 'gentle', 'soft', 'slow',
+                'mellow', 'zen', 'soothing', 'placid', 'restful', 'content', 'composed', 'ease', 'leisurely',
+                'unhurried', 'settled', 'smooth', 'steady', 'measured', 'patient', 'moderate', 'mild', 'tender',
+                'sleepy', 'drowsy', 'lazy', 'languid', 'dreamy', 'hazy', 'floating', 'drifting', 'cozy', 'snug',
+                'comfortable', 'safe', 'secure', 'resting', 'unwinding', 'decompressing', 'breathing'
+            ],
+            energetic: [
+                'excited', 'energetic', 'alive', 'buzzing', 'electric', 'hyper', 'wired', 'pumped', 'eager',
+                'restless', 'fast', 'wild', 'vibrant', 'dynamic', 'lively', 'spirited', 'animated', 'active',
+                'vigorous', 'intense', 'fiery', 'passionate', 'exhilarated', 'thrilled', 'ecstatic', 'euphoric',
+                'charged', 'invigorated', 'stimulated', 'awakened', 'alert', 'sharp', 'crackling', 'surging',
+                'pulsing', 'racing', 'rushing', 'soaring', 'flying', 'bursting', 'explosive', 'radiant', 'blazing',
+                'burning', 'fired', 'motivated', 'driven', 'determined', 'unstoppable', 'powerful', 'strong'
+            ],
+            anxious: [
+                'anxious', 'nervous', 'worried', 'stressed', 'tense', 'overwhelmed', 'scattered', 'chaotic',
+                'frantic', 'racing', 'panicked', 'fearful', 'afraid', 'scared', 'terrified', 'uneasy', 'unsettled',
+                'agitated', 'jittery', 'shaky', 'trembling', 'on edge', 'hypervigilant', 'paranoid', 'obsessive',
+                'spiraling', 'spinning', 'drowning', 'suffocating', 'trapped', 'cornered', 'pressured', 'rushed',
+                'frazzled', 'overwhelm', 'overload', 'too much', 'cant breathe', 'tight', 'constricted', 'wound up'
+            ],
+
+            // Connection level (affects connection strength, tendril count)
+            connected: [
+                'connected', 'loved', 'together', 'close', 'warm', 'held', 'supported', 'grateful', 'full', 'open',
+                'embraced', 'belonging', 'included', 'accepted', 'welcomed', 'seen', 'heard', 'understood',
+                'appreciated', 'valued', 'cherished', 'adored', 'intimate', 'bonded', 'attached', 'intertwined',
+                'united', 'joined', 'merged', 'one', 'whole', 'complete', 'fulfilled', 'satisfied', 'home',
+                'rooted', 'grounded', 'anchored', 'tethered', 'linked', 'woven', 'braided', 'entwined', 'touching',
+                'reaching', 'holding', 'hugging', 'cuddling', 'nestled', 'wrapped', 'surrounded', 'community'
+            ],
+            isolated: [
+                'alone', 'lonely', 'isolated', 'distant', 'disconnected', 'empty', 'cold', 'numb', 'withdrawn',
+                'lost', 'abandoned', 'forgotten', 'invisible', 'unseen', 'unheard', 'ignored', 'rejected',
+                'excluded', 'outcast', 'outsider', 'stranger', 'alien', 'separate', 'apart', 'removed', 'detached',
+                'severed', 'cut off', 'adrift', 'floating', 'untethered', 'rootless', 'homeless', 'wandering',
+                'searching', 'seeking', 'missing', 'longing', 'yearning', 'aching', 'hollow', 'void', 'vacuum',
+                'solitary', 'solo', 'single', 'independent', 'self-reliant', 'on my own', 'by myself'
+            ],
+
+            // Density/fullness (affects tendril count)
+            abundant: [
+                'full', 'rich', 'abundant', 'overflowing', 'bursting', 'alive', 'vibrant', 'lush', 'thriving',
+                'flourishing', 'blooming', 'blossoming', 'growing', 'expanding', 'spreading', 'multiplying',
+                'teeming', 'swarming', 'buzzing', 'humming', 'pulsing', 'throbbing', 'dense', 'thick', 'heavy',
+                'saturated', 'drenched', 'soaked', 'filled', 'stuffed', 'packed', 'crowded', 'brimming', 'spilling',
+                'gushing', 'pouring', 'flooding', 'overwhelming', 'excessive', 'extravagant', 'lavish', 'generous',
+                'plentiful', 'copious', 'ample', 'enough', 'more than enough', 'blessed', 'fortunate', 'lucky'
+            ],
+            sparse: [
+                'empty', 'hollow', 'thin', 'fading', 'quiet', 'minimal', 'simple', 'bare', 'stark', 'stripped',
+                'reduced', 'diminished', 'lessened', 'weakened', 'drained', 'depleted', 'exhausted', 'spent',
+                'running low', 'scarce', 'rare', 'few', 'little', 'small', 'tiny', 'faint', 'dim', 'pale',
+                'light', 'wispy', 'delicate', 'fragile', 'subtle', 'understated', 'muted', 'hushed', 'whispered',
+                'barely', 'hardly', 'scarcely', 'just', 'only', 'merely', 'nothing', 'none', 'zero', 'blank',
+                'clean', 'clear', 'open', 'spacious', 'airy', 'breathing room'
+            ],
+
+            // Mood tone (affects field gentleness / noise scale)
+            turbulent: [
+                'confused', 'conflicted', 'torn', 'stormy', 'turbulent', 'messy', 'complicated', 'rough',
+                'chaotic', 'disordered', 'jumbled', 'scrambled', 'mixed up', 'tangled', 'knotted', 'twisted',
+                'spinning', 'whirling', 'swirling', 'churning', 'roiling', 'boiling', 'volatile', 'unstable',
+                'unpredictable', 'erratic', 'wild', 'untamed', 'uncontrolled', 'out of control', 'crazy',
+                'insane', 'mad', 'frenzied', 'manic', 'hectic', 'intense', 'overwhelming', 'disorienting',
+                'lost', 'uncertain', 'unsure', 'doubtful', 'questioning', 'searching', 'wandering', 'drifting'
+            ],
+            clear: [
+                'clear', 'focused', 'certain', 'steady', 'grounded', 'centered', 'balanced', 'sure', 'confident',
+                'decisive', 'determined', 'resolved', 'committed', 'dedicated', 'purposeful', 'intentional',
+                'directed', 'aimed', 'targeted', 'precise', 'accurate', 'exact', 'sharp', 'crisp', 'clean',
+                'pure', 'simple', 'straightforward', 'direct', 'honest', 'true', 'authentic', 'real', 'genuine',
+                'transparent', 'obvious', 'evident', 'apparent', 'visible', 'seen', 'known', 'understood',
+                'enlightened', 'aware', 'conscious', 'present', 'here', 'now', 'mindful', 'attentive', 'lucid'
+            ],
+
+            // NEW: Hope/despair (affects brightness bias)
+            hopeful: [
+                'hopeful', 'optimistic', 'positive', 'bright', 'sunny', 'radiant', 'glowing', 'shining',
+                'looking forward', 'anticipating', 'expecting', 'awaiting', 'excited for', 'eager for',
+                'believing', 'trusting', 'faithful', 'confident', 'assured', 'certain', 'knowing',
+                'rising', 'lifting', 'ascending', 'climbing', 'growing', 'improving', 'getting better',
+                'healing', 'recovering', 'mending', 'rebuilding', 'renewing', 'refreshing', 'reborn',
+                'new', 'fresh', 'beginning', 'starting', 'dawn', 'sunrise', 'morning', 'spring', 'bloom'
+            ],
+            despairing: [
+                'hopeless', 'despairing', 'desperate', 'bleak', 'dark', 'gloomy', 'dim', 'shadowy',
+                'dreading', 'fearing', 'worrying', 'doubting', 'questioning', 'uncertain', 'unsure',
+                'sinking', 'falling', 'descending', 'dropping', 'declining', 'worsening', 'deteriorating',
+                'dying', 'ending', 'finishing', 'closing', 'shutting', 'fading', 'dimming', 'darkening',
+                'grieving', 'mourning', 'lamenting', 'weeping', 'crying', 'sobbing', 'broken', 'shattered',
+                'crushed', 'defeated', 'beaten', 'given up', 'surrendered', 'lost cause', 'no point'
+            ],
+
+            // NEW: Nostalgia/presence (affects color warmth)
+            nostalgic: [
+                'nostalgic', 'wistful', 'bittersweet', 'remembering', 'memories', 'past', 'before',
+                'used to', 'once', 'when', 'back then', 'childhood', 'youth', 'old times', 'good old days',
+                'missing', 'longing', 'yearning', 'aching', 'pining', 'wishing', 'wanting', 'dreaming',
+                'reminiscing', 'reflecting', 'looking back', 'thinking about', 'recalling', 'revisiting',
+                'vintage', 'retro', 'classic', 'timeless', 'eternal', 'forever', 'always', 'never forget',
+                'sentimental', 'emotional', 'touching', 'moving', 'poignant', 'tender', 'dear', 'precious'
+            ],
+            present: [
+                'present', 'here', 'now', 'today', 'this moment', 'right now', 'currently', 'at this time',
+                'immediate', 'instant', 'sudden', 'quick', 'fast', 'rapid', 'swift', 'speedy',
+                'aware', 'conscious', 'awake', 'alert', 'attentive', 'focused', 'concentrated', 'engaged',
+                'mindful', 'meditative', 'contemplative', 'observing', 'watching', 'noticing', 'seeing',
+                'feeling', 'sensing', 'experiencing', 'living', 'being', 'existing', 'happening', 'occurring',
+                'fresh', 'new', 'recent', 'modern', 'contemporary', 'current', 'latest', 'up to date'
+            ],
+
+            // NEW: Playful/serious (affects vibration patterns)
+            playful: [
+                'playful', 'fun', 'silly', 'goofy', 'whimsical', 'quirky', 'weird', 'strange', 'odd',
+                'laughing', 'giggling', 'chuckling', 'smiling', 'grinning', 'beaming', 'joyful', 'joyous',
+                'happy', 'glad', 'pleased', 'delighted', 'amused', 'entertained', 'enjoying', 'having fun',
+                'light', 'lighthearted', 'carefree', 'free', 'liberated', 'unburdened', 'weightless',
+                'dancing', 'jumping', 'skipping', 'bouncing', 'spinning', 'twirling', 'swinging', 'swaying',
+                'creative', 'imaginative', 'inventive', 'curious', 'wondering', 'exploring', 'discovering'
+            ],
+            serious: [
+                'serious', 'solemn', 'grave', 'somber', 'heavy', 'weighty', 'important', 'significant',
+                'meaningful', 'profound', 'deep', 'intense', 'concentrated', 'focused', 'dedicated',
+                'committed', 'devoted', 'determined', 'resolved', 'firm', 'strong', 'steady', 'stable',
+                'responsible', 'mature', 'adult', 'grown up', 'wise', 'knowing', 'experienced', 'seasoned',
+                'thoughtful', 'considerate', 'careful', 'cautious', 'deliberate', 'intentional', 'purposeful',
+                'working', 'striving', 'trying', 'effort', 'struggle', 'challenge', 'difficulty', 'hardship'
+            ]
+        };
+
+        function hashString(str) {
+            let hash = 0;
+            for (let i = 0; i < str.length; i++) {
+                const char = str.charCodeAt(i);
+                hash = ((hash << 5) - hash) + char;
+                hash = hash & hash;
+            }
+            return Math.abs(hash);
+        }
+
+        function seededRandom(seed) {
+            const x = Math.sin(seed) * 10000;
+            return x - Math.floor(x);
+        }
+
+        function analyzeSentiment(text) {
+            const lower = text.toLowerCase();
+            const words = lower.split(/\s+/);
+
+            let scores = {
+                energy: 0.5,      // 0 = calm, 1 = energetic
+                anxiety: 0,       // 0 = none, 1 = high
+                connection: 0.5,  // 0 = isolated, 1 = connected
+                density: 0.5,     // 0 = sparse, 1 = abundant
+                clarity: 0.5,     // 0 = turbulent, 1 = clear
+                hope: 0.5,        // 0 = despairing, 1 = hopeful
+                temporality: 0.5, // 0 = nostalgic/past, 1 = present
+                playfulness: 0.5  // 0 = serious, 1 = playful
+            };
+
+            // Helper: check if any mood word is found in the text word
+            const matchesBank = (word, bank) => bank.some(w => word.includes(w) || w.includes(word));
+
+            // Check each word against mood banks
+            for (const word of words) {
+                if (word.length < 3) continue; // Skip tiny words
+
+                // Energy
+                if (matchesBank(word, MOOD_WORDS.calm)) scores.energy -= 0.12;
+                if (matchesBank(word, MOOD_WORDS.energetic)) scores.energy += 0.12;
+                if (matchesBank(word, MOOD_WORDS.anxious)) { scores.anxiety += 0.15; scores.energy += 0.08; }
+
+                // Connection
+                if (matchesBank(word, MOOD_WORDS.connected)) scores.connection += 0.12;
+                if (matchesBank(word, MOOD_WORDS.isolated)) scores.connection -= 0.12;
+
+                // Density
+                if (matchesBank(word, MOOD_WORDS.abundant)) scores.density += 0.12;
+                if (matchesBank(word, MOOD_WORDS.sparse)) scores.density -= 0.12;
+
+                // Clarity
+                if (matchesBank(word, MOOD_WORDS.turbulent)) scores.clarity -= 0.12;
+                if (matchesBank(word, MOOD_WORDS.clear)) scores.clarity += 0.12;
+
+                // Hope (new)
+                if (matchesBank(word, MOOD_WORDS.hopeful)) scores.hope += 0.12;
+                if (matchesBank(word, MOOD_WORDS.despairing)) scores.hope -= 0.12;
+
+                // Temporality (new)
+                if (matchesBank(word, MOOD_WORDS.nostalgic)) scores.temporality -= 0.12;
+                if (matchesBank(word, MOOD_WORDS.present)) scores.temporality += 0.12;
+
+                // Playfulness (new)
+                if (matchesBank(word, MOOD_WORDS.playful)) scores.playfulness += 0.12;
+                if (matchesBank(word, MOOD_WORDS.serious)) scores.playfulness -= 0.12;
+            }
+
+            // Clamp all scores to 0-1
+            for (let key in scores) {
+                scores[key] = Math.max(0, Math.min(1, scores[key]));
+            }
+
+            return scores;
+        }
+
+        // ═══════════════════════════════════════════════════════════════════════
+        // FLOW - One-shot generation
+        // ═══════════════════════════════════════════════════════════════════════
+
+        function flow() {
+            if (hasFlowed) return;
+
+            // Get the feeling text (required, minimum 50 chars)
+            const text = document.getElementById('feeling-input').value.trim();
+            if (text.length < 50) {
+                // Should be prevented by UI, but just in case
+                return;
+            }
+
+            // Hash text to derive seed and palette deterministically
+            const hash = hashString(text);
+            params.seed = hash;
+            currentPaletteIndex = hash % PALETTES.length;
+            applyPalette();
+
+            // Analyze sentiment for resonance parameters
+            const sentiment = analyzeSentiment(text);
+
+            const r1 = seededRandom(hash);
+            const r2 = seededRandom(hash + 1);
+            const r3 = seededRandom(hash + 2);
+            const r4 = seededRandom(hash + 3);
+            const r5 = seededRandom(hash + 4);
+
+            // Generate parameters based on sentiment + hash
+            const densityBias = (sentiment.connection + sentiment.density) / 2;
+            params.tendrilCount = Math.floor(1500 + densityBias * 2500 + r1 * 1000);
+            params.growthRate = Math.round((0.3 + sentiment.energy * 1.2 + r2 * 0.4) * 10) / 10;
+
+            const vibeBias = (sentiment.energy + sentiment.anxiety) / 2;
+            params.vibrationFreq = Math.round((0.008 + vibeBias * 0.035 + r3 * 0.01) * 1000) / 1000;
+
+            params.connectionStrength = Math.round((0.2 + sentiment.connection * 0.7 + r4 * 0.1) * 10) / 10;
+
+            const chaosBias = 1 - sentiment.clarity;
+            params.noiseScale = Math.round((0.001 + chaosBias * 0.005 + r5 * 0.002) * 1000) / 1000;
+
+            // Wire new sentiment dimensions to art parameters
+            // Hope affects brightness bias in tendril energy
+            // Temporality affects warmth (handled via palette selection already from hash)
+            // Playfulness affects vibration frequency modulation
+            params.vibrationFreq *= (0.8 + sentiment.playfulness * 0.4); // Playful = more vibrant
+
+            // Draw background with the derived palette
+            drawNebulaBackground();
+
+            hasFlowed = true;
+            document.getElementById('flow-btn').disabled = true;
+            document.getElementById('progress-container').classList.add('active');
+            document.getElementById('progress-fill').style.width = '0%';
+            document.getElementById('progress-text').textContent = 'Growing... 0%';
+
+            // Initialize tendrils with current settings
+            randomSeed(params.seed);
+            noiseSeed(params.seed);
+
+            tendrils = [];
+            connections = [];
+            globalHeartbeat = 0;
+
+            let seedPoints = [];
+            let overflow = 150;
+            let totalW = width + overflow * 2;
+            let totalH = height + overflow * 2;
+
+            let gridSize = 12;
+            let cellW = totalW / gridSize;
+            let cellH = totalH / gridSize;
+            let seedsPerCell = floor(params.tendrilCount / (gridSize * gridSize)) + 2;
+
+            for (let gx = 0; gx < gridSize; gx++) {
+                for (let gy = 0; gy < gridSize; gy++) {
+                    let cellX = -overflow + gx * cellW;
+                    let cellY = -overflow + gy * cellH;
+
+                    for (let i = 0; i < seedsPerCell; i++) {
+                        seedPoints.push({
+                            x: cellX + random(cellW),
+                            y: cellY + random(cellH)
+                        });
+                    }
+                }
+            }
+
+            seedPoints = seedPoints.sort(() => random() - 0.5);
+
+            for (let i = 0; i < min(seedPoints.length, params.tendrilCount); i++) {
+                tendrils.push(new Tendril(seedPoints[i].x, seedPoints[i].y, i));
+            }
+        }
+
+        // ═══════════════════════════════════════════════════════════════════════
+        // RESET
+        // ═══════════════════════════════════════════════════════════════════════
+
+        function resetAll() {
+            // Reset state
+            hasFlowed = false;
+            tendrils = [];
+            connections = [];
+            globalHeartbeat = 0;
+
+            // Reset params to defaults
+            params = JSON.parse(JSON.stringify(defaultParams));
+
+            // Clear feeling input and reset character counter
+            document.getElementById('feeling-input').value = '';
+            updateCharCounter();
+
+            // Flow button disabled until text entered, disable Download
+            document.getElementById('flow-btn').disabled = true;
+            document.getElementById('download-btn').disabled = true;
+            document.getElementById('download-btn').style.opacity = '0.5';
+            document.getElementById('progress-container').classList.remove('active');
+
+            // Draw neutral background (no palette yet)
+            clear();
+            background(0, 0, 12);
+        }
+
+        function saveImage() {
+            saveCanvas('sympathetic-mycelia-' + params.seed, 'png');
+        }
+    </script>
+</body>
+</html>
