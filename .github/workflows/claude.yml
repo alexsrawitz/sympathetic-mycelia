@@ -20,11 +20,25 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      - name: Check if last commit is from bot
+        id: check
+        run: |
+          AUTHOR=$(git log -1 --format='%an')
+          if [[ "$AUTHOR" == *"[bot]"* || "$AUTHOR" == *"Claude"* ]]; then
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "skip=false" >> "$GITHUB_OUTPUT"
+          fi
       - uses: anthropics/claude-code-action@v1
+        if: steps.check.outputs.skip != 'true'
         with:
           anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
-          prompt: "/review"
-          claude_args: "--max-turns 5"
+          prompt: |
+            Review this PR. If you find issues (bugs, security problems, style violations,
+            or anything that doesn't match the project's CLAUDE.md conventions), fix them
+            and push the changes. Leave a comment summarizing what you found and fixed.
+            If everything looks good, leave an approving review.
+          claude_args: "--max-turns 10"
 
   respond:
     if: |
